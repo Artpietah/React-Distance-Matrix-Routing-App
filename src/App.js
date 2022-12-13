@@ -1,24 +1,55 @@
-import logo from './logo.svg';
+import '@tomtom-international/web-sdk-maps/dist/maps.css'
+import {  useState, useEffect, useRef } from 'react';
+import * as  tt from '@tomtom-international/web-sdk-maps'
 import './App.css';
 
 function App() {
+  const [latitude, setLatitude] = useState(-0.0166666);
+  const [longitude, setLongitude] = useState(34.5999976);
+
+const mapElement = useRef()
+const [map, setMap] = useState({});
+  useEffect(() => {  
+
+      let map= tt.map({
+        key: process.env.REACT_APP_TOM_TOM_API_KEY,
+        container:mapElement.current,
+        stylesVisibility:{
+          trafficFlow:true,
+          trafficIncidents:true
+        },
+        center: [longitude, latitude],
+        zoom: 14
+      })
+      setMap(map)
+      const addMarker=()=>{
+        const element =document.createElement('div')
+        element.className='marker'
+         const marker = new tt.Marker({
+          draggable: true,
+          element: element
+         })
+         .setLngLat([longitude,latitude])
+         .addTo(map)
+
+         marker.on('dragend', ()=>{
+            const lonlat = marker.getLngLat()
+            setLatitude(lonlat.lat)
+            setLongitude(lonlat.lng)
+         })
+
+      }
+
+      addMarker()
+      return()=> map.remove()
+
+   },[longitude,latitude])
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+   <> {map && <div className="App">
+       <div ref={mapElement} className="map"></div>
+       <div className='search-bar'></div>
+    </div>}
+    </>
   );
 }
 
